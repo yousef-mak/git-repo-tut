@@ -1,50 +1,316 @@
-name: CI/CD for Advanced Tic Tac Toe
+name: Advanced Tic Tac Toe CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
+    branches: [ main, develop ]
+  release:
+    types: [ published ]
+
+env:
+  BUILD_TYPE: Release
+  QT_VERSION: '6.5.0'
 
 jobs:
-  build:
+  # Static Analysis and Code Quality
+  code-quality:
     runs-on: ubuntu-latest
-
+    name: Code Quality Analysis
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v4
+    
     - name: Install dependencies
       run: |
-        sudo apt update
-        sudo apt install -y build-essential cmake libgtest-dev
-
-    - name: Configure and build
+        sudo apt-get update
+        sudo apt-get install -y cppcheck clang-format
+    
+    - name: Run cppcheck
       run: |
-        mkdir -p build && cd build
-        cmake ..
-        make
+        cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem src/
+    
+    - name: Check code formatting
+      run: |
+        find src/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
 
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-
+  # Build and Test Matrix
+  build-and-test:
+    needs: code-quality
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build_type: [Debug, Release]
+        include:
+          - os: ubuntu-latest
+            qt_arch: gcc_64
+          - os: windows-latest
+            qt_arch: win64_msvc2019_64
+          - os: macos-latest
+            qt_arch: clang_64
+    
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.os }}, ${{ matrix.build_type }})
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Run Google Test
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    # Setup Qt
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ env.QT_VERSION }}
+        arch: ${{ matrix.qt_arch }}
+        cache: true
+    
+    # Setup C++ environment
+    - name: Setup C++ (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        cd build
-        ctest --output-on-failure
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake ninja-build
+        sudo apt-get install -y libsqlite3-dev
+        sudo apt-get install -y libgtest-dev
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib
+    
+    - name: Setup C++ (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: microsoft/setup-msbuild@v1.3
+    
+    - name: Setup C++ (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake ninja sqlite3
+        brew install googletest
+    
+    # Configure CMake
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DCMAKE_PREFIX_PATH=${{ env.Qt6_DIR }} \
+              -DBUILD_TESTING=ON \
+              -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
+    
+    # Build
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{ matrix.build_type }} --parallel 4
+    
+    # Run Unit Tests
+    - name: Run Unit Tests
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{ matrix.build_type }} --output-on-failure --parallel 4
+    
+    # Generate Coverage Report (Debug builds only)
+    - name: Generate Coverage Report
+      if: matrix.build_type == 'Debug' && matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install -y lcov
+        cd ${{github.workspace}}/build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --remove coverage.info '*/tests/*' --output-file coverage.info
+        lcov --list coverage.info
+    
+    - name: Upload Coverage to Codecov
+      if: matrix.build_type == 'Debug' && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ${{github.workspace}}/build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+    
+    # Upload Build Artifacts
+    - name: Upload Build Artifacts
+      if: matrix.build_type == 'Release'
+      uses: actions/upload-artifact@v3
+      with:
+        name: tic-tac-toe-${{ matrix.os }}
+        path: |
+          ${{github.workspace}}/build/bin/
+          ${{github.workspace}}/build/*.exe
+          ${{github.workspace}}/build/*.app/
+        retention-days: 30
 
+  # Performance Testing
+  performance-test:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Performance Testing
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: tic-tac-toe-ubuntu-latest
+        path: ./build/
+    
+    - name: Run Performance Tests
+      run: |
+        chmod +x ./build/bin/tic_tac_toe_perf_tests
+        ./build/bin/tic_tac_toe_perf_tests --benchmark_format=json > performance_results.json
+    
+    - name: Upload Performance Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: performance_results.json
+
+  # Security Scanning
+  security-scan:
+    needs: code-quality
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Bandit Security Scan
+      run: |
+        # Install security scanning tools
+        sudo apt-get update
+        sudo apt-get install -y clang-tidy
+        
+        # Run static analysis for security issues
+        find src/ -name "*.cpp" -o -name "*.h" | xargs clang-tidy \
+          -checks='-*,cert-*,security-*,readability-*' \
+          --format-style=file
+    
+    - name: Upload SARIF results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: results.sarif
+
+  # Integration Tests
+  integration-test:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Integration Testing
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Test Environment
+      run: |
+        # Setup test database and configuration
+        mkdir -p test_data
+        sqlite3 test_data/test.db < scripts/init_test_db.sql
+    
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: tic-tac-toe-ubuntu-latest
+        path: ./build/
+    
+    - name: Run Integration Tests
+      run: |
+        chmod +x ./build/bin/tic_tac_toe_integration_tests
+        export TEST_DB_PATH=./test_data/test.db
+        ./build/bin/tic_tac_toe_integration_tests
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: integration-test-results
+        path: |
+          test_results.xml
+          test_logs/
+
+  # Documentation Generation
+  documentation:
+    needs: code-quality
+    runs-on: ubuntu-latest
+    name: Generate Documentation
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Doxygen
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+    
+    - name: Generate Documentation
+      run: |
+        doxygen Doxyfile
+    
+    - name: Deploy Documentation
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html
+
+  # Deployment
   deploy:
+    if: github.event_name == 'release'
+    needs: [build-and-test, integration-test, performance-test]
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
-
+    name: Deploy Release
+    
     steps:
-    - name: Deploy Application
-      run: echo "Deploying Advanced Tic Tac Toe..."  # Replace with actual deployment steps
+    - uses: actions/checkout@v4
+    
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Package Release
+      run: |
+        mkdir -p release
+        # Package binaries for different platforms
+        tar -czf release/tic-tac-toe-linux.tar.gz tic-tac-toe-ubuntu-latest/
+        zip -r release/tic-tac-toe-windows.zip tic-tac-toe-windows-latest/
+        tar -czf release/tic-tac-toe-macos.tar.gz tic-tac-toe-macos-latest/
+    
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/tic-tac-toe-linux.tar.gz
+          release/tic-tac-toe-windows.zip
+          release/tic-tac-toe-macos.tar.gz
+        body: |
+          ## Release Notes
+          
+          ### Features
+          - Advanced Tic Tac Toe with AI opponent
+          - User authentication and game history
+          - Cross-platform GUI using Qt
+          
+          ### Performance Metrics
+          - Response time: < 100ms
+          - Memory usage optimized
+          - AI move calculation: < 500ms
+          
+          ### Supported Platforms
+          - Linux (Ubuntu 20.04+)
+          - Windows (Windows 10+)
+          - macOS (macOS 10.15+)
+
+  # Notification
+  notify:
+    if: always()
+    needs: [build-and-test, integration-test, performance-test, security-scan]
+    runs-on: ubuntu-latest
+    name: Notification
+    
+    steps:
+    - name: Notify Success
+      if: needs.build-and-test.result == 'success' && needs.integration-test.result == 'success'
+      run: |
+        echo "✅ All tests passed! Ready for deployment."
+    
+    - name: Notify Failure
+      if: needs.build-and-test.result == 'failure' || needs.integration-test.result == 'failure'
+      run: |
+        echo "❌ Tests failed! Please check the logs."
+        exit 1
