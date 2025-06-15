@@ -1,0 +1,50 @@
+name: CI/CD for Advanced Tic Tac Toe
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential cmake libgtest-dev
+
+    - name: Configure and build
+      run: |
+        mkdir -p build && cd build
+        cmake ..
+        make
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run Google Test
+      run: |
+        cd build
+        ctest --output-on-failure
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Deploy Application
+      run: echo "Deploying Advanced Tic Tac Toe..."  # Replace with actual deployment steps
