@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Extract ZIP file
-      run: unzip your-file.zip -d extracted-files  # Change file name & target directory
+      run: unzip TicTacToe_Project.zip -d extracted-files  # Change file name & target directory
 
     - name: List extracted files (Debugging)
       run: ls -l extracted-files
