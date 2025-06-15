@@ -8,16 +8,45 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential
+        sudo apt-get install -y libsqlite3-dev
+        sudo apt-get install -y libgtest-dev
+        
+        # Install Qt6 (required for GUI)
+        sudo apt-get install -y qt6-base-dev qt6-base-dev-tools
+        
+        # Build and install Google Test
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib || sudo cp *.a /usr/lib
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: |
+        cmake --build build --parallel $(nproc)
+    
+    - name: Run tests
+      working-directory: build
+      run: |
+        ctest --output-on-failure
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: |
+          build/bin/
+          build/*.exe
+        retention-days: 7
