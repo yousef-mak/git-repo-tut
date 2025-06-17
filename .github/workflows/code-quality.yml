@@ -1,0 +1,49 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install clang tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-tidy clang-format
+      
+    - name: Run clang-format check
+      run: |
+        find src include tests -name "*.cpp" -o -name "*.h" | \
+        xargs clang-format --dry-run --Werror
+      
+    - name: Run clang-tidy analysis
+      run: |
+        cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        clang-tidy src/*.cpp include/*.h \
+          -p build/ \
+          --checks='-*,readability-*,performance-*,modernize-*'
+      
+    - name: C++ Linter
+      uses: cpp-linter/cpp-linter-action@v2
+      id: linter
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        style: 'file'
+        tidy-checks: ''
+        version: '14'
+        thread-comments: ${{ github.event_name == 'pull_request' }}
+        
+    - name: Fail on linting errors
+      if: steps.linter.outputs.checks-failed > 0
+      run: |
+        echo "Code quality checks failed!"
+        exit 1
