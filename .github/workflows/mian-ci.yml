@@ -56,15 +56,19 @@ jobs:
           --config ${{env.BUILD_TYPE}} \
           --parallel $(nproc)
       
-    - name: Run tests with virtual display
+    - name: Run tests with offscreen platform
       working-directory: ${{github.workspace}}/build
+      timeout-minutes: 5
       env:
-        DISPLAY: :99
+        QT_QPA_PLATFORM: offscreen
+        QT_LOGGING_RULES: "*.debug=false"
       run: |
-        echo "Running tests with virtual display..."
+        echo "Running tests with offscreen platform..."
         ctest -C ${{env.BUILD_TYPE}} \
-          --output-on-failure \
-          --verbose 
+        --output-on-failure \
+        --verbose \
+        --timeout 180
+
     - name: Run integration tests
       working-directory: ${{github.workspace}}/build
       run: |
