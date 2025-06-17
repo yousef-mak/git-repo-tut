@@ -31,8 +31,10 @@ set(SOURCES
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
 )
-
+add_library(game_core STATIC ${CORE_LIB_SOURCES})
+target_include_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core/include)
 # Testing configuration
+
 if(ENABLE_TESTING)
     # Individual component tests
     add_executable(AIPlayer_test_test tests/unit_tests/AIPlayer_test.cpp)
