@@ -36,8 +36,8 @@ if(ENABLE_TESTING)
     target_link_libraries(gameboard_test game_core gtest gtest_main)
     add_test(NAME GameBoardTest COMMAND gameboard_test)
 	
-	add_executable(gamestack_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameStateStack_test.cpp)
-    target_link_libraries(gamestack_test game_core gtest gtest_main)
-    add_test(NAME GameStackTest COMMAND gamestack_test)
+    add_executable(gamehistory_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameHistory_test.cpp)
+    target_link_libraries(gamehistory_test game_core gtest gtest_main)
+    add_test(NAME GameHistoryTest COMMAND gamehistory_test)
 
 endif()
