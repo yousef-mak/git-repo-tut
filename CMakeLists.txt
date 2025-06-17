@@ -10,13 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-find_package(Qt6 COMPONENTS Core Widgets QUIET)
-if(NOT Qt6_FOUND)
-    find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-    set(QT_VERSION_MAJOR 5)
-else()
-    set(QT_VERSION_MAJOR 6)
-endif()
+
 
 # Enable testing
 option(ENABLE_TESTING "Enable testing" ON)
