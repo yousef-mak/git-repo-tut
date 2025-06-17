@@ -46,6 +46,7 @@ set(SOURCES
     core/src/UserManager.cpp
     GUI/src/TicTacToeGUI.cpp
     GUI/src/main.cpp
+    GUI/include/TicTacToeGUI.h 
 )
 
 # Create library from core components
