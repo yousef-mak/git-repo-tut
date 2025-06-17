@@ -1,4 +1,4 @@
-name: Advanced Tic Tac Toe CI - Focused Testing
+name: Advanced Tic Tac Toe CI - With Virtual Display
 
 on:
   push:
@@ -28,19 +28,20 @@ jobs:
           libgtest-dev \
           qt6-base-dev \
           qt6-tools-dev \
+          xvfb \
+          x11-utils \
+          libgl1-mesa-dev \
           ccache \
           clang-tidy \
           clang-format \
           pkg-config \
           gcovr
         
-    - name: Setup ccache
-      uses: actions/cache@v4
-      with:
-        path: ~/.ccache
-        key: ${{ runner.os }}-ccache-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-ccache-
+    - name: Setup virtual display
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        sleep 3
         
     - name: Configure CMake
       run: |
@@ -55,18 +56,15 @@ jobs:
           --config ${{env.BUILD_TYPE}} \
           --parallel $(nproc)
       
-    - name: Run tests with offscreen platform
-        working-directory:
-          ${{github.workspace}}/build
-        env:
-          QT_QPA_PLATFORM: offscreen
-          run: |
-          echo "Running tests with offscreen platform..."
-          ctest -C ${{env.BUILD_TYPE}} \
-           --output-on-failure \
-           --verbose
-
-      
+    - name: Run tests with virtual display
+      working-directory: ${{github.workspace}}/build
+      env:
+        DISPLAY: :99
+      run: |
+        echo "Running tests with virtual display..."
+        ctest -C ${{env.BUILD_TYPE}} \
+          --output-on-failure \
+          --verbose 
     - name: Run integration tests
       working-directory: ${{github.workspace}}/build
       run: |
