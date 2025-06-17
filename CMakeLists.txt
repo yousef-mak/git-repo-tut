@@ -33,7 +33,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
 
-# Core source files (your specific files)
+# Core source files
 set(CORE_SOURCES
     core/src/AIPlayer.cpp
     core/src/GameBoard.cpp
