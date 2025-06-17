@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
+ 
 class GameHistoryTest : public ::testing::Test {
 protected:
     GameHistory history;
