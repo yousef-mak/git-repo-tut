@@ -69,6 +69,7 @@ jobs:
       run: |
         cd ${{github.workspace}}/build
           --filter "../core/src/GameBoard.cpp" \
+          --filter "../core/src/GameHistory.cpp" \
           --filter "../core/src/GameStateStack.cpp" \
         
           build/Testing/
