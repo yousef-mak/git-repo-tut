@@ -1,4 +1,4 @@
-#include "../include/GameStateStack.h"
+#include "GameStateStack.h"
 
 GameStateStack::GameStateStack() {}
 

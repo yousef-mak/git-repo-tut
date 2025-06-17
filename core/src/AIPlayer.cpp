@@ -1,4 +1,4 @@
-#include "../include/AIPlayer.h"
+#include "AIPlayer.h"
 
 AIPlayer::AIPlayer(char aiSym, char humanSym, DifficultyLevel difficulty)
     : aiSymbol(aiSym), humanSymbol(humanSym), currentDifficulty(difficulty) {}

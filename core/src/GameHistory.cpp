@@ -1,4 +1,4 @@
-#include "../include/GameHistory.h"
+#include "GameHistory.h"
 
 GameHistory::GameHistory() : historyFile("game_history.dat") {
     loadHistory();

@@ -1,4 +1,4 @@
-#include "../include/UserManager.h"
+#include "UserManager.h"
 #include <algorithm>
 
 UserHashTable::UserHashTable() {

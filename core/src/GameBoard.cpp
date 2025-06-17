@@ -1,4 +1,4 @@
-#include "../include/GameBoard.h"
+#include "GameBoard.h"
 
 GameBoard::GameBoard() : board(BOARD_SIZE, std::vector<char>(BOARD_SIZE, ' ')) {}
 
