@@ -21,8 +21,8 @@ if(ENABLE_TESTING)
 endif()
 
 # Include directories
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
+include_directories(${CMAKE_SOURCE_DIR}/../core/include)
+include_directories(${CMAKE_SOURCE_DIR}/../GUI/include)
 
 set(CORE_LIB_SOURCES
     ${CMAKE_SOURCE_DIR}/../core/src/AIPlayer.cpp
