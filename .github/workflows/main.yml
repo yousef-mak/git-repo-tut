@@ -3,9 +3,9 @@ name: Advanced Tic Tac Toe CI - Focused Testing
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 env:
   BUILD_TYPE: Release
