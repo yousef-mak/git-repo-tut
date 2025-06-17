@@ -25,11 +25,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
 
 set(CORE_LIB_SOURCES
-    core/src/AIPlayer.cpp
-    core/src/GameBoard.cpp
-    core/src/GameHistory.cpp
-    core/src/GameStateStack.cpp
-    core/src/UserManager.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/AIPlayer.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/GameBoard.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/GameHistory.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/GameStateStack.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/UserManager.cpp
 )
 add_library(game_core STATIC ${CORE_LIB_SOURCES})
 target_include_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core/include)
