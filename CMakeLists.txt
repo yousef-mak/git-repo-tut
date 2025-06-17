@@ -33,24 +33,22 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
 
-set(CORE_SOURCES
+set(SOURCES
     core/src/AIPlayer.cpp
     core/src/GameBoard.cpp
     core/src/GameHistory.cpp
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
-)
-set(GUI_SOURCES
     GUI/src/TicTacToeGUI.cpp
     GUI/src/main.cpp
 )
-set(ALL_LIB_SOURCES ${CORE_LIB_SOURCES} ${GUI_SOURCES})
+
 # Create library from core components
-add_library(game_core ${ALL_LIB_SOURCES})
+add_library(game_core ${SOURCES})
 target_link_libraries(game_core Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Main executable
-add_executable(tic_tac_toe_game ${ALL_LIB_SOURCES} )
+add_executable(tic_tac_toe_game ${SOURCES} )
 target_link_libraries(tic_tac_toe_game Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Testing configuration
