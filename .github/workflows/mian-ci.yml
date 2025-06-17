@@ -28,7 +28,7 @@ jobs:
         libgtest-dev \
         qt6-base-dev \
         qt6-tools-dev \
-        xvfb \
+        sudo apt-get install -y xvfb
         x11-utils \
         libgl1-mesa-dev \
         ccache \
@@ -37,7 +37,12 @@ jobs:
         pkg-config \
         gcovr
 
-        
+    - name: Start Xvfb
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 -ac > /dev/null 2>&1 &
+        sleep 3
+
     - name: Configure CMake
       run: |
         cmake -B ${{github.workspace}}/build \
