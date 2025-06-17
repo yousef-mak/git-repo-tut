@@ -35,7 +35,7 @@ jobs:
           gcovr
         
     - name: Setup ccache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-ccache-${{ github.sha }}
@@ -86,13 +86,13 @@ jobs:
           --filter "../core/src/_usermanager.cpp"
         
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: build/coverage.xml
         fail_ci_if_error: false
         
     - name: Upload test artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ github.sha }}
