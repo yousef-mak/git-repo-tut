@@ -26,22 +26,10 @@ jobs:
           build-essential \
           cmake \
           libgtest-dev \
-          qt6-base-dev \
-          qt6-tools-dev \
-          xvfb \
-          x11-utils \
-          libgl1-mesa-dev \
-          ccache \
           clang-tidy \
           clang-format \
           pkg-config \
           gcovr
-        
-    - name: Setup virtual display
-      run: |
-        export DISPLAY=:99
-        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        sleep 3
         
     - name: Configure CMake
       run: |
@@ -56,14 +44,11 @@ jobs:
           --config ${{env.BUILD_TYPE}} \
           --parallel $(nproc)
       
-    - name: Run tests with offscreen platform
+    - name: Run tests with simplified configuration
       working-directory: ${{github.workspace}}/build
       timeout-minutes: 5
-      env:
-        QT_QPA_PLATFORM: offscreen
-        QT_LOGGING_RULES: "*.debug=false"
       run: |
-        echo "Running tests with offscreen platform..."
+        echo "Running core component tests..."
         ctest -C ${{env.BUILD_TYPE}} \
         --output-on-failure \
         --verbose \
