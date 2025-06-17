@@ -82,7 +82,6 @@ jobs:
           --filter "../core/src/GameBoard.cpp" \
           --filter "../core/src/GameHistory.cpp" \
           --filter "../core/src/GameStateStack.cpp" \
-          --filter "../core/src/main.cpp" \
           --filter "../core/src/UserManagerr.cpp"
         
     - name: Upload coverage reports
