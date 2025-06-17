@@ -40,7 +40,6 @@ set(CORE_SOURCES
     core/src/GameHistory.cpp
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
-    core/src/main.cpp
 )
 
 # Create library from core components
