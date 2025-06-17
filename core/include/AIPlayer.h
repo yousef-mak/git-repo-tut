@@ -5,6 +5,7 @@
 #include <stack>
 #include <random>
 #include <climits>
+#include <limits>
 
 enum class DifficultyLevel {
     EASY,
@@ -23,21 +24,14 @@ public:
     void clearAIMoveHistory();
 
 private:
-    int minimax(GameBoard& board, int depth, bool isMaximizing, int alpha, int beta);
-    int evaluateBoard(const GameBoard& board);
-    std::pair<int, int> getRandomMove(const GameBoard& board);
-    std::pair<int, int> getMediumMove(const GameBoard& board);
-    std::pair<int, int> getHardMove(const GameBoard& board);
-    std::pair<int, int> getCriticalMove(const GameBoard& board);
-    std::pair<int, int> getLimitedMinimax(const GameBoard& board, int maxDepth);
-    int limitedMinimax(GameBoard& board, int depth, bool isMaximizing, int alpha, int beta, int maxDepth);
-    int evaluatePosition(const GameBoard& board);
-    int evaluateLine(char cell1, char cell2, char cell3);
+    std::pair<int, int> findBestMove(const GameBoard& board, int forcedChance = -1);
+    int minimax(GameBoard board, int depth, bool isMax, int alpha, int beta);
+    int minimaxLimited(GameBoard board, int depth, bool isMax, int alpha, int beta, int maxDepth);
+    std::string difficultyToString(DifficultyLevel diff);
 
     char aiSymbol;
     char humanSymbol;
     DifficultyLevel currentDifficulty;
-    static const int MAX_DEPTH = 9;
     std::stack<std::pair<int, int>> aiMoveHistory;
 };
 

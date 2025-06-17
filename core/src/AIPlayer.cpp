@@ -1,7 +1,13 @@
 #include "AIPlayer.h"
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
 
 AIPlayer::AIPlayer(char aiSym, char humanSym, DifficultyLevel difficulty)
-    : aiSymbol(aiSym), humanSymbol(humanSym), currentDifficulty(difficulty) {}
+    : aiSymbol(aiSym), humanSymbol(humanSym), currentDifficulty(difficulty) {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+}
 
 void AIPlayer::setDifficulty(DifficultyLevel difficulty) {
     currentDifficulty = difficulty;
@@ -13,7 +19,7 @@ void AIPlayer::pushAIMove(int row, int col) {
 
 std::pair<int, int> AIPlayer::popAIMove() {
     if (!aiMoveHistory.empty()) {
-        std::pair<int, int> move = aiMoveHistory.top();
+        auto move = aiMoveHistory.top();
         aiMoveHistory.pop();
         return move;
     }
@@ -25,294 +31,128 @@ bool AIPlayer::hasAIMoveHistory() {
 }
 
 void AIPlayer::clearAIMoveHistory() {
-    while (!aiMoveHistory.empty()) {
-        aiMoveHistory.pop();
+    while (!aiMoveHistory.empty()) aiMoveHistory.pop();
+}
+
+// Check for immediate win or block
+static std::pair<int,int> getCriticalMove(const GameBoard& board, char symbol) {
+    auto moves = board.getAvailableMoves();
+    for (auto [r,c] : moves) {
+        GameBoard tmp = board;
+        tmp.makeMove(r, c, symbol);
+        if (tmp.checkWin() != GameResult::ONGOING) return {r,c};
     }
+    return {-1,-1};
 }
 
 std::pair<int, int> AIPlayer::getBestMove(const GameBoard& board) {
-    std::pair<int, int> move;
-
-    switch (currentDifficulty) {
-    case DifficultyLevel::EASY:
-        move = getRandomMove(board);
-        break;
-    case DifficultyLevel::MEDIUM:
-        move = getMediumMove(board);
-        break;
-    case DifficultyLevel::HARD:
-    default:
-        move = getHardMove(board);
-        break;
+    // 1. Try immediate win
+    auto winMove = getCriticalMove(board, aiSymbol);
+    if (winMove.first != -1) {
+        pushAIMove(winMove.first, winMove.second);
+        return winMove;
     }
-
-    if (move.first != -1 && move.second != -1) {
-        pushAIMove(move.first, move.second);
+    // 2. Block opponent win
+    auto blockMove = getCriticalMove(board, humanSymbol);
+    if (blockMove.first != -1) {
+        pushAIMove(blockMove.first, blockMove.second);
+        return blockMove;
     }
-
+    // 3. Otherwise strategic search
+    auto move = findBestMove(board);
+    if (move.first != -1) pushAIMove(move.first, move.second);
     return move;
 }
 
-std::pair<int, int> AIPlayer::getRandomMove(const GameBoard& board) {
+std::pair<int, int> AIPlayer::findBestMove(const GameBoard& board, int forcedChance) {
     auto moves = board.getAvailableMoves();
-    if (moves.empty()) {
-        return {-1, -1};
+    if (moves.empty()) return {-1,-1};
+
+    int chance = (forcedChance >= 0) ? forcedChance : (std::rand() % 100);
+    int bestVal = std::numeric_limits<int>::min();
+    std::pair<int,int> bestMove = moves[0];
+
+    // Depending on difficulty, randomized chance
+    bool useRandom = (currentDifficulty == DifficultyLevel::EASY && chance < 80)
+                  || (currentDifficulty == DifficultyLevel::MEDIUM && chance < 40)
+                  || (currentDifficulty == DifficultyLevel::HARD && chance < 5);
+
+    if (useRandom) {
+        return moves[std::rand() % moves.size()];
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, moves.size() - 1);
+    int depthLimit = (currentDifficulty == DifficultyLevel::EASY ? 1
+                     : currentDifficulty == DifficultyLevel::MEDIUM ? 2
+                     : 9);
 
-    return moves[dis(gen)];
-}
-
-std::pair<int, int> AIPlayer::getMediumMove(const GameBoard& board) {
-    auto criticalMove = getCriticalMove(board);
-    if (criticalMove.first != -1) {
-        return criticalMove;
-    }
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1, 100);
-
-    if (dis(gen) <= 40) {
-        return getRandomMove(board);
-    } else {
-        return getLimitedMinimax(board, 3);
-    }
-}
-
-std::pair<int, int> AIPlayer::getHardMove(const GameBoard& board) {
-    GameBoard tempBoard = board;
-    int bestScore = INT_MIN;
-    std::pair<int, int> bestMove = {-1, -1};
-
-    auto moves = board.getAvailableMoves();
-    if (moves.empty()) {
-        return bestMove;
-    }
-
-    for (const auto& move : moves) {
-        GameBoard testBoard = board;
-        testBoard.makeMove(move.first, move.second, aiSymbol);
-        int score = minimax(testBoard, 0, false, INT_MIN, INT_MAX);
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMove = move;
+    for (auto [r,c] : moves) {
+        GameBoard tmp = board;
+        tmp.makeMove(r, c, aiSymbol);
+        int val = (depthLimit < 9)
+            ? minimaxLimited(tmp, 0, false, INT_MIN, INT_MAX, depthLimit)
+            : minimax(tmp, 0, false, INT_MIN, INT_MAX);
+        if (val > bestVal) {
+            bestVal = val;
+            bestMove = {r,c};
         }
     }
-
     return bestMove;
 }
 
-std::pair<int, int> AIPlayer::getCriticalMove(const GameBoard& board) {
-    auto moves = board.getAvailableMoves();
-
-    for (const auto& move : moves) {
-        GameBoard testBoard = board;
-        testBoard.makeMove(move.first, move.second, aiSymbol);
-        if (testBoard.checkWin() != GameResult::ONGOING) {
-            return move;
-        }
-    }
-
-    for (const auto& move : moves) {
-        GameBoard testBoard = board;
-        testBoard.makeMove(move.first, move.second, humanSymbol);
-        if (testBoard.checkWin() != GameResult::ONGOING) {
-            return move;
-        }
-    }
-
-    return {-1, -1};
-}
-
-std::pair<int, int> AIPlayer::getLimitedMinimax(const GameBoard& board, int maxDepth) {
-    int bestScore = INT_MIN;
-    std::pair<int, int> bestMove = {-1, -1};
-
-    auto moves = board.getAvailableMoves();
-    if (moves.empty()) {
-        return bestMove;
-    }
-
-    for (const auto& move : moves) {
-        GameBoard testBoard = board;
-        testBoard.makeMove(move.first, move.second, aiSymbol);
-        int score = limitedMinimax(testBoard, 0, false, INT_MIN, INT_MAX, maxDepth);
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMove = move;
-        }
-    }
-
-    return bestMove;
-}
-
-int AIPlayer::limitedMinimax(GameBoard& board, int depth, bool isMaximizing, int alpha, int beta, int maxDepth) {
+int AIPlayer::minimax(GameBoard board, int depth, bool isMax, int alpha, int beta) {
     GameResult result = board.checkWin();
-
-    if (depth >= maxDepth) {
-        return evaluatePosition(board);
+    if (result != GameResult::ONGOING) {
+        if (result == GameResult::TIE) return 0;
+        bool aiWon = ((result == GameResult::PLAYER1_WIN && aiSymbol=='X')
+                   || (result==GameResult::PLAYER2_WIN && aiSymbol=='O'));
+        return aiWon ? 10-depth : depth-10;
     }
-
-    if (result == GameResult::PLAYER1_WIN || result == GameResult::PLAYER2_WIN) {
-        if ((result == GameResult::PLAYER1_WIN && aiSymbol == 'X') ||
-            (result == GameResult::PLAYER2_WIN && aiSymbol == 'O')) {
-            return 10 - depth;
-        } else {
-            return depth - 10;
-        }
-    }
-
-    if (result == GameResult::TIE) {
-        return 0;
-    }
-
-    if (isMaximizing) {
-        int maxEval = INT_MIN;
-        auto moves = board.getAvailableMoves();
-
-        for (const auto& move : moves) {
-            board.makeMove(move.first, move.second, aiSymbol);
-            int eval = limitedMinimax(board, depth + 1, false, alpha, beta, maxDepth);
-            board.makeMove(move.first, move.second, ' ');
-
-            maxEval = std::max(maxEval, eval);
-            alpha = std::max(alpha, eval);
-
-            if (beta <= alpha) {
-                break;
+    if (isMax) {
+        int best = INT_MIN;
+        for (int r=0;r<3;++r) for (int c=0;c<3;++c) {
+            if (board.getCell(r,c)==' ') {
+                GameBoard tmp=board; tmp.makeMove(r,c,aiSymbol);
+                best = std::max(best, minimax(tmp, depth+1, false, alpha, beta));
+                alpha = std::max(alpha, best);
+                if (beta<=alpha) return best;
             }
         }
-        return maxEval;
+        return best;
     } else {
-        int minEval = INT_MAX;
-        auto moves = board.getAvailableMoves();
-
-        for (const auto& move : moves) {
-            board.makeMove(move.first, move.second, humanSymbol);
-            int eval = limitedMinimax(board, depth + 1, true, alpha, beta, maxDepth);
-            board.makeMove(move.first, move.second, ' ');
-
-            minEval = std::min(minEval, eval);
-            beta = std::min(beta, eval);
-
-            if (beta <= alpha) {
-                break;
+        int best = INT_MAX;
+        for (int r=0;r<3;++r) for (int c=0;c<3;++c) {
+            if (board.getCell(r,c)==' ') {
+                GameBoard tmp=board; tmp.makeMove(r,c,humanSymbol);
+                best = std::min(best, minimax(tmp, depth+1, true, alpha, beta));
+                beta = std::min(beta, best);
+                if (beta<=alpha) return best;
             }
         }
-        return minEval;
+        return best;
     }
 }
 
-int AIPlayer::evaluatePosition(const GameBoard& board) {
-    int aiScore = 0;
-
-    for (int i = 0; i < 3; i++) {
-        aiScore += evaluateLine(board.getCell(i, 0), board.getCell(i, 1), board.getCell(i, 2));
-        aiScore += evaluateLine(board.getCell(0, i), board.getCell(1, i), board.getCell(2, i));
-    }
-
-    aiScore += evaluateLine(board.getCell(0, 0), board.getCell(1, 1), board.getCell(2, 2));
-    aiScore += evaluateLine(board.getCell(0, 2), board.getCell(1, 1), board.getCell(2, 0));
-
-    return aiScore;
-}
-
-int AIPlayer::evaluateLine(char cell1, char cell2, char cell3) {
-    int aiCount = 0;
-    int humanCount = 0;
-
-    if (cell1 == aiSymbol) aiCount++;
-    else if (cell1 == humanSymbol) humanCount++;
-
-    if (cell2 == aiSymbol) aiCount++;
-    else if (cell2 == humanSymbol) humanCount++;
-
-    if (cell3 == aiSymbol) aiCount++;
-    else if (cell3 == humanSymbol) humanCount++;
-
-    if (aiCount > 0 && humanCount > 0) return 0;
-
-    if (aiCount == 3) return 100;
-    if (aiCount == 2) return 10;
-    if (aiCount == 1) return 1;
-
-    if (humanCount == 3) return -100;
-    if (humanCount == 2) return -10;
-    if (humanCount == 1) return -1;
-
-    return 0;
-}
-
-int AIPlayer::minimax(GameBoard& board, int depth, bool isMaximizing, int alpha, int beta) {
+int AIPlayer::minimaxLimited(GameBoard board, int depth, bool isMax,
+                             int alpha, int beta, int maxDepth) {
     GameResult result = board.checkWin();
-
-    if (result == GameResult::PLAYER1_WIN || result == GameResult::PLAYER2_WIN) {
-        if ((result == GameResult::PLAYER1_WIN && aiSymbol == 'X') ||
-            (result == GameResult::PLAYER2_WIN && aiSymbol == 'O')) {
-            return 10 - depth;
-        } else {
-            return depth - 10;
-        }
+    if (result != GameResult::ONGOING) {
+        if (result==GameResult::TIE) return 0;
+        bool aiWon = ((result==GameResult::PLAYER1_WIN && aiSymbol=='X')
+                   || (result==GameResult::PLAYER2_WIN && aiSymbol=='O'));
+        return aiWon ? 10-depth : depth-10;
     }
-
-    if (result == GameResult::TIE) {
-        return 0;
+    if (depth>=maxDepth) {
+        // heuristic: count center preference
+        return (board.getCell(1,1)==aiSymbol?3:0);
     }
-
-    if (isMaximizing) {
-        int maxEval = INT_MIN;
-        auto moves = board.getAvailableMoves();
-
-        for (const auto& move : moves) {
-            board.makeMove(move.first, move.second, aiSymbol);
-            int eval = minimax(board, depth + 1, false, alpha, beta);
-            board.makeMove(move.first, move.second, ' ');
-
-            maxEval = std::max(maxEval, eval);
-            alpha = std::max(alpha, eval);
-
-            if (beta <= alpha) {
-                break;
-            }
-        }
-        return maxEval;
-    } else {
-        int minEval = INT_MAX;
-        auto moves = board.getAvailableMoves();
-
-        for (const auto& move : moves) {
-            board.makeMove(move.first, move.second, humanSymbol);
-            int eval = minimax(board, depth + 1, true, alpha, beta);
-            board.makeMove(move.first, move.second, ' ');
-
-            minEval = std::min(minEval, eval);
-            beta = std::min(beta, eval);
-
-            if (beta <= alpha) {
-                break;
-            }
-        }
-        return minEval;
-    }
+    return minimax(board, depth, isMax, alpha, beta);
 }
 
-int AIPlayer::evaluateBoard(const GameBoard& board) {
-    GameResult result = board.checkWin();
-
-    if (result == GameResult::PLAYER1_WIN || result == GameResult::PLAYER2_WIN) {
-        if ((result == GameResult::PLAYER1_WIN && aiSymbol == 'X') ||
-            (result == GameResult::PLAYER2_WIN && aiSymbol == 'O')) {
-            return 10;
-        } else {
-            return -10;
-        }
+std::string AIPlayer::difficultyToString(DifficultyLevel diff) {
+    switch(diff) {
+        case DifficultyLevel::EASY: return "easy";
+        case DifficultyLevel::MEDIUM: return "medium";
+        case DifficultyLevel::HARD: return "hard";
     }
-
-    return 0;
+    return "unknown";
 }

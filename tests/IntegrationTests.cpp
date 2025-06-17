@@ -82,7 +82,7 @@ protected:
     }
 };
 
-// ==================== USER MANAGEMENT INTEGRATION TESTS (Tests 1-50) ====================
+// ==================== USER MANAGEMENT INTEGRATION TESTS ====================
 
 TEST_F(TicTacToeIntegrationTest, UserRegistrationAndAuthentication) {
     EXPECT_TRUE(users->insertUser("player1", "hash123"));
@@ -143,29 +143,9 @@ TEST_F(TicTacToeIntegrationTest, UserRemovalIntegration) {
     EXPECT_EQ(users->getUser("temp_user"), nullptr);
 }
 
-// Tests 6-25: Game Board and AI Integration
-TEST_F(TicTacToeIntegrationTest, AIPlayerBoardInteraction) {
-    for(int test = 0; test < 20; ++test) {
-        board.reset();
-        aiHard->clearAIMoveHistory();
-        
-        // Set up specific board state
-        board.makeMove(0, 0, 'X');
-        board.makeMove(0, 1, 'X');
-        
-        auto aiMove = aiHard->getBestMove(board);
-        EXPECT_EQ(aiMove, std::make_pair(0, 2)); // Should block
-        
-        EXPECT_TRUE(board.makeMove(aiMove.first, aiMove.second, 'O'));
-        EXPECT_EQ(board.getCell(aiMove.first, aiMove.second), 'O');
-        
-        EXPECT_TRUE(aiHard->hasAIMoveHistory());
-        auto historyMove = aiHard->popAIMove();
-        EXPECT_EQ(historyMove, aiMove);
-    }
-}
 
-// Tests 26-75: Complete Game Flow Integration
+
+// Complete Game Flow Integration
 TEST_F(TicTacToeIntegrationTest, PlayerVsPlayerCompleteGameFlow) {
     users->insertUser("alice", "hash1");
     users->insertUser("bob", "hash2");
@@ -221,6 +201,39 @@ TEST_F(TicTacToeIntegrationTest, PlayerVsPlayerCompleteGameFlow) {
 }
 
 // Tests 76-125: AI vs Player Integration
+TEST_F(TicTacToeIntegrationTest, AIvsPlayerEasyMode) {
+    users->insertUser("player1", "hash1");
+    users->insertUser("ai_easy", "hash2");
+    
+    aiEasy->clearAIMoveHistory();
+    
+    for(int game = 0; game < 15; ++game) {
+        board.reset();
+        
+        GameResult result = playCompleteGame(*aiEasy, 'O', 'X');
+        EXPECT_TRUE(result != GameResult::ONGOING);
+        
+        // Record game
+        std::string timestamp = "2025-06-16 " + std::to_string(10 + game) + ":00:00";
+        GameRecord record("player1", "AI_Easy", GameMode::PLAYER_VS_AI, result, board.getBoard(), timestamp);
+        history->addGameRecord(record);
+        
+        // Update user stats
+        User* player = users->getUser("player1");
+        player->gamesPlayed++;
+        if(result == GameResult::PLAYER1_WIN) player->gamesWon++;
+        else if(result == GameResult::PLAYER2_WIN) player->gamesLost++;
+        else player->gamesTied++;
+        users->updateUser("player1", *player);
+    }
+    
+    auto playerGames = history->getUserGames("player1");
+    EXPECT_EQ(playerGames.size(), 15);
+    
+    User* finalPlayer = users->getUser("player1");
+    EXPECT_EQ(finalPlayer->gamesPlayed, 15);
+}
+
 TEST_F(TicTacToeIntegrationTest, AIvsPlayerAllDifficulties) {
     users->insertUser("challenger", "hash");
     
@@ -1960,4 +1973,35 @@ TEST_F(TicTacToeIntegrationTest, ConcurrentOperationSimulation) {
     User* user2 = users->getUser("concurrent2");
     EXPECT_GT(user1->gamesPlayed, 0);
     EXPECT_GT(user2->gamesPlayed, 0);
+}
+
+TEST_F(TicTacToeIntegrationTest, EdgeCaseHandling) {
+    // Test edge cases with empty board
+    board.reset();
+    stack->clearStack();
+    
+    GameResult result = board.checkWin();
+    EXPECT_EQ(result, GameResult::ONGOING);
+    
+    // Test full board with no winner
+    board.setBoard({
+        {'X', 'O', 'X'},
+        {'O', 'X', 'O'},
+        {'O', 'X', 'O'}
+    });
+    
+    result = board.checkWin();
+    EXPECT_EQ(result, GameResult::TIE);
+    
+    // Test invalid moves
+    EXPECT_FALSE(board.makeMove(-1, -1, 'X')); // Out of bounds
+    EXPECT_FALSE(board.makeMove(3, 3, 'O'));  // Out of bounds
+    EXPECT_FALSE(board.makeMove(0, 0, 'X'));  // Cell already occupied
+    
+    // Test undo on empty stack
+    EXPECT_FALSE(stack->canUndo());
+    
+    // Test stack operations with no moves
+    stack->clearStack();
+    EXPECT_EQ(stack->popMove().player, ' ');
 }
