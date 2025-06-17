@@ -69,7 +69,7 @@ jobs:
       run: |
         cd ${{github.workspace}}/build
           --filter "../core/src/GameBoard.cpp" \
-          --filter "../core/src/GameStateStack.cpp" \
+          --filter "../core/src/GameHistory.cpp" \
         
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
