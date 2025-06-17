@@ -23,14 +23,20 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          build-essential \
-          cmake \
-          libgtest-dev \
-          ccache \
-          clang-tidy \
-          clang-format \
-          pkg-config \
-          gcovr
+        build-essential \
+        cmake \
+        libgtest-dev \
+        qt6-base-dev \
+        qt6-tools-dev \
+        xvfb \
+        x11-utils \
+        libgl1-mesa-dev \
+        ccache \
+        clang-tidy \
+        clang-format \
+        pkg-config \
+        gcovr
+
         
     - name: Configure CMake
       run: |
