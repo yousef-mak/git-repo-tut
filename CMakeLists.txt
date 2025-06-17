@@ -24,7 +24,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
 
-set(SOURCES
+set(CORE_LIB_SOURCES
     core/src/AIPlayer.cpp
     core/src/GameBoard.cpp
     core/src/GameHistory.cpp
