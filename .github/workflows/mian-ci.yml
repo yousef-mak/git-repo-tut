@@ -28,7 +28,6 @@ jobs:
           libgtest-dev \
           qt6-base-dev \
           qt6-tools-dev \
-          ccache \
           clang-tidy \
           clang-format \
           pkg-config \
@@ -36,10 +35,10 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B ${{github.workspace}}/build \
-          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+        cmake -S ci_cmake_config \
+         -B build \
+         -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DENABLE_TESTING=ON \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       
     - name: Build project
       run: |
