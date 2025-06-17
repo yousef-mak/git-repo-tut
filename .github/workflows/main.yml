@@ -54,5 +54,3 @@ jobs:
           -C ${{env.BUILD_TYPE}} \
           --output-on-failure \
           --verbose
-
-        retention-days: 7
