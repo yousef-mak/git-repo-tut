@@ -34,4 +34,8 @@ if(ENABLE_TESTING)
     add_executable(gameboard_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameBoard_test.cpp)
     target_link_libraries(gameboard_test game_core gtest gtest_main)
     add_test(NAME GameBoardTest COMMAND gameboard_test)
+    
+    add_executable(gamestack_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameStateStack_test.cpp)
+    target_link_libraries(gamestack_test game_core gtest gtest_main)
+    add_test(NAME GameStackTest COMMAND gamestack_test)
 endif()
