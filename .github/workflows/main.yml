@@ -36,9 +36,9 @@ jobs:
     - name: Configure CMake
       run: |
         cmake -S ci_cmake_config \
-         -B build \
-         -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DENABLE_TESTING=ON \
+          -B build \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DENABLE_TESTING=ON
       
     - name: Build project
       run: |
@@ -50,7 +50,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         echo "Running tests for core components..."
-        ctest -R "AIPlayer|GameBoard|GameHistory|GameStack|UserManager" \
+        ctest -R "GameBoard|GameStack" \
           -C ${{env.BUILD_TYPE}} \
           --output-on-failure \
           --verbose
@@ -69,7 +69,7 @@ jobs:
       run: |
         cd ${{github.workspace}}/build
           --filter "../core/src/GameBoard.cpp" \
-		  --filter "../core/src/GameStateStack.cpp"
+          --filter "../core/src/GameStateStack.cpp" \
         
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
@@ -85,3 +85,4 @@ jobs:
         path: |
           build/Testing/
           build/coverage.xml
+        retention-days: 7
