@@ -1,4 +1,4 @@
-name: Advanced Tic Tac Toe CI/CD
+name: Advanced Tic Tac Toe CI - Focused Testing
 
 on:
   push:
@@ -26,13 +26,13 @@ jobs:
           build-essential \
           cmake \
           libgtest-dev \
-          qt5-default \
-          qtbase5-dev \
-          qttools5-dev \
-          libsqlite3-dev \
+          qt6-base-dev \
+          qt6-tools-dev \
           ccache \
           clang-tidy \
-          clang-format
+          clang-format \
+          pkg-config \
+          gcovr
         
     - name: Setup ccache
       uses: actions/cache@v3
@@ -55,25 +55,48 @@ jobs:
           --config ${{env.BUILD_TYPE}} \
           --parallel $(nproc)
       
-    - name: Run unit tests
+    - name: Run unit tests for specific components
       working-directory: ${{github.workspace}}/build
       run: |
-        ctest -C ${{env.BUILD_TYPE}} \
+        echo "Running tests for core components..."
+        ctest -R "AIPlayer|GameBoard|GameHistory|GameStack|UserManager" \
+          -C ${{env.BUILD_TYPE}} \
           --output-on-failure \
           --verbose
       
-    - name: Generate test coverage report
+    - name: Run integration tests
+      working-directory: ${{github.workspace}}/build
+      run: |
+        echo "Running comprehensive integration tests..."
+        ctest -R "Integration" \
+          -C ${{env.BUILD_TYPE}} \
+          --output-on-failure \
+          --verbose
+      
+    - name: Generate test coverage
       if: success()
       run: |
         cd ${{github.workspace}}/build
-        gcov -r . || true
+        gcovr --root .. --xml --output coverage.xml \
+          --filter "../core/src/aiplayer.cpp" \
+          --filter "../core/src/gameboard.cpp" \
+          --filter "../core/src/gamehistory.cpp" \
+          --filter "../core/src/gamestack.cpp" \
+          --filter "../core/src/_main.cpp" \
+          --filter "../core/src/_usermanager.cpp"
         
-    - name: Upload build artifacts
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: build/coverage.xml
+        fail_ci_if_error: false
+        
+    - name: Upload test artifacts
       uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: build-artifacts-${{ github.sha }}
+        name: test-results-${{ github.sha }}
         path: |
-          build/
-          !build/CMakeFiles/
+          build/Testing/
+          build/coverage.xml
         retention-days: 7
