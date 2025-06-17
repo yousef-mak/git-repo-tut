@@ -39,7 +39,6 @@ set(CORE_SOURCES
     core/src/GameBoard.cpp
     core/src/GameHistory.cpp
     core/src/GameStateStack.cpp
-    core/src/_main.cpp
     core/src/UserManager.cpp
 )
 
