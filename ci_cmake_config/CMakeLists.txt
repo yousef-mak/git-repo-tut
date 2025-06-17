@@ -27,6 +27,7 @@ include_directories(${CMAKE_SOURCE_DIR}/../GUI/include)
 set(CORE_LIB_SOURCES
     ${CMAKE_SOURCE_DIR}/../core/src/GameBoard.cpp
     ${CMAKE_SOURCE_DIR}/../core/src/GameHistory.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/UserManager.cpp
 )
 add_library(game_core STATIC ${CORE_LIB_SOURCES})
 target_include_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core/include)
@@ -40,5 +41,9 @@ if(ENABLE_TESTING)
     add_executable(gamehistory_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameHistory_test.cpp)
     target_link_libraries(gamehistory_test game_core gtest gtest_main)
     add_test(NAME GameHistoryTest COMMAND gamehistory_test)
+
+    add_executable(usermanager_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/UserManager_test.cpp)
+    target_link_libraries(usermanager_test game_core gtest gtest_main)
+    add_test(NAME UserManagerTest COMMAND usermanager_test)
 
 endif()
