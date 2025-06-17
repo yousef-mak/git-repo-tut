@@ -11,8 +11,14 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_COMPILER "C:/Qt/Tools/mingw1310_64/bin/gcc.exe")
 set(CMAKE_CXX_COMPILER "C:/Qt/Tools/mingw1310_64/bin/g++.exe")
 
-# — مسار تثبيت Qt6
-set(CMAKE_PREFIX_PATH "C:/Qt/6.9.1/mingw_64/lib/cmake")
+# Find Qt
+find_package(Qt6 COMPONENTS Core Widgets QUIET)
+if(NOT Qt6_FOUND)
+    find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+    set(QT_VERSION_MAJOR 5)
+else()
+    set(QT_VERSION_MAJOR 6)
+endif()
 
 # ======== Coverage Support ========
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
