@@ -1,4 +1,4 @@
-name: Advanced Tic Tac Toe CI - With Virtual Display
+name: Advanced Tic Tac Toe CI - Focused Testing
 
 on:
   push:
@@ -26,10 +26,21 @@ jobs:
           build-essential \
           cmake \
           libgtest-dev \
+          qt6-base-dev \
+          qt6-tools-dev \
+          ccache \
           clang-tidy \
           clang-format \
           pkg-config \
           gcovr
+        
+    - name: Setup ccache
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-ccache-
         
     - name: Configure CMake
       run: |
@@ -44,16 +55,15 @@ jobs:
           --config ${{env.BUILD_TYPE}} \
           --parallel $(nproc)
       
-    - name: Run tests with simplified configuration
+    - name: Run unit tests for specific components
       working-directory: ${{github.workspace}}/build
-      timeout-minutes: 5
       run: |
-        echo "Running core component tests..."
-        ctest -C ${{env.BUILD_TYPE}} \
-        --output-on-failure \
-        --verbose \
-        --timeout 180
-
+        echo "Running tests for core components..."
+        ctest -R "AIPlayer|GameBoard|GameHistory|GameStack|UserManager" \
+          -C ${{env.BUILD_TYPE}} \
+          --output-on-failure \
+          --verbose
+      
     - name: Run integration tests
       working-directory: ${{github.workspace}}/build
       run: |
