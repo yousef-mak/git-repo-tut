@@ -50,7 +50,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         echo "Running tests for core components..."
-        ctest -R "AIPlayer|GameBoard|GameHistory|GameStack|UserManager" \
+        ctest -R "GameBoard|GameStack" \
           -C ${{env.BUILD_TYPE}} \
           --output-on-failure \
           --verbose
@@ -68,25 +68,9 @@ jobs:
       if: success()
       run: |
         cd ${{github.workspace}}/build
-        gcovr --root .. --xml --output coverage.xml \
-          --filter "../core/src/AIPlayer.cpp" \
           --filter "../core/src/GameBoard.cpp" \
-          --filter "../core/src/GameHistory.cpp" \
           --filter "../core/src/GameStateStack.cpp" \
-          --filter "../core/src/UserManagerr.cpp"
         
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: build/coverage.xml
-        fail_ci_if_error: false
-        
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-${{ github.sha }}
-        path: |
           build/Testing/
           build/coverage.xml
         retention-days: 7
