@@ -1,15 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(TicTacToeGame)
+project(AdvancedTicTacToe VERSION 1.0.0)
 
-# — استخدام C و C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
-# — فرض MinGW toolchain
-set(CMAKE_C_COMPILER "C:/Qt/Tools/mingw1310_64/bin/gcc.exe")
-set(CMAKE_CXX_COMPILER "C:/Qt/Tools/mingw1310_64/bin/g++.exe")
 
 # Find Qt
 find_package(Qt6 COMPONENTS Core Widgets QUIET)
@@ -20,15 +13,8 @@ else()
     set(QT_VERSION_MAJOR 6)
 endif()
 
-# ======== Coverage Support ========
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    message(STATUS "Code coverage enabled")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -O0")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-endif()
-
-option(ENABLE_TESTING "Enable testing" ON)
 # Enable testing
+option(ENABLE_TESTING "Enable testing" ON)
 if(ENABLE_TESTING)
     enable_testing()
     
@@ -42,8 +28,6 @@ if(ENABLE_TESTING)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 endif()
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/core/include)
@@ -59,6 +43,7 @@ set(CORE_SOURCES
     core/src/_usermanager.cpp
 )
 
+# Create library from core components
 add_library(game_core ${CORE_SOURCES})
 target_link_libraries(game_core Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
