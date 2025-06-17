@@ -26,6 +26,7 @@ include_directories(${CMAKE_SOURCE_DIR}/../GUI/include)
 
 set(CORE_LIB_SOURCES
     ${CMAKE_SOURCE_DIR}/../core/src/GameBoard.cpp
+    ${CMAKE_SOURCE_DIR}/../core/src/GameHistory.cpp
 )
 add_library(game_core STATIC ${CORE_LIB_SOURCES})
 target_include_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core/include)
