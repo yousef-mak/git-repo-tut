@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(AdvancedTicTacToe VERSION 1.0.0)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -40,7 +45,6 @@ set(SOURCES
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
     GUI/src/TicTacToeGUI.cpp
-    GUI/include/TicTacToeGUI.h 
     GUI/src/main.cpp
 )
 
