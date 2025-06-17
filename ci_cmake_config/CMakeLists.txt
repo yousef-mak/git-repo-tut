@@ -37,28 +37,28 @@ target_include_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core/inc
 
 if(ENABLE_TESTING)
     # Individual component tests
-    add_executable(AIPlayer_test_test tests/unit_tests/AIPlayer_test.cpp)
+    add_executable(AIPlayer_test_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/AIPlayer_test.cpp)
     target_link_libraries(AIPlayer_test_test game_core gtest gtest_main)
     add_test(NAME AIPlayerTest COMMAND AIPlayer_test_test)
     
-    add_executable(gameboard_test tests/unit_tests/GameBoard_test.cpp)
+    add_executable(gameboard_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameBoard_test.cpp)
     target_link_libraries(gameboard_test game_core gtest gtest_main)
     add_test(NAME GameBoardTest COMMAND gameboard_test)
     
-    add_executable(gamehistory_test tests/unit_tests/GameHistory_test.cpp)
+    add_executable(gamehistory_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameHistory_test.cpp)
     target_link_libraries(gamehistory_test game_core gtest gtest_main)
     add_test(NAME GameHistoryTest COMMAND gamehistory_test)
     
-    add_executable(gamestack_test tests/unit_tests/GameStateStack_test.cpp)
+    add_executable(gamestack_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/GameStateStack_test.cpp)
     target_link_libraries(gamestack_test game_core gtest gtest_main)
     add_test(NAME GameStackTest COMMAND gamestack_test)
     
-    add_executable(usermanager_test tests/unit_tests/UserManager_test.cpp)
+    add_executable(usermanager_test ${CMAKE_SOURCE_DIR}/../tests/unit_tests/UserManager_test.cpp)
     target_link_libraries(usermanager_test game_core gtest gtest_main)
     add_test(NAME UserManagerTest COMMAND usermanager_test)
     
     # Comprehensive integration test
-    add_executable(integration_test tests/integration_tests/IntegrationTests.cpp)
+    add_executable(integration_test ${CMAKE_SOURCE_DIR}/../tests/integration_tests/IntegrationTests.cpp)
     target_link_libraries(integration_test game_core gtest gtest_main)
     add_test(NAME IntegrationTest COMMAND integration_test)
 endif()
