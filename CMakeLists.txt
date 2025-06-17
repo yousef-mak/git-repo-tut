@@ -51,7 +51,7 @@ add_library(game_core ${ALL_LIB_SOURCES})
 target_link_libraries(game_core Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Main executable
-add_executable(tic_tac_toe_game ${ALL_LIB_SOURCES })
+add_executable(tic_tac_toe_game ALL_LIB_SOURCES )
 target_link_libraries(tic_tac_toe_game Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Testing configuration
