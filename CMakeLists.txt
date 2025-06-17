@@ -30,9 +30,6 @@ set(SOURCES
     core/src/GameHistory.cpp
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
-    GUI/src/TicTacToeGUI.cpp
-    GUI/src/main.cpp
-    GUI/include/TicTacToeGUI.h 
 )
 
 # Testing configuration
