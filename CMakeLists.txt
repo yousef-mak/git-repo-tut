@@ -35,12 +35,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI/include)
 
 # Core source files (your specific files)
 set(CORE_SOURCES
-    core/src/aiplayer.cpp
-    core/src/gameboard.cpp
-    core/src/gamehistory.cpp
-    core/src/gamestack.cpp
-    core/src/_main.cpp
-    core/src/_usermanager.cpp
+    core/src/AIPlayer.cpp
+    core/src/GameBoard.cpp
+    core/src/GameHistory.cpp
+    core/src/GameStateStack.cpp
+    core/src/UserManager.cpp
+    core/src/main.cpp
 )
 
 # Create library from core components
@@ -54,9 +54,9 @@ target_link_libraries(tic_tac_toe_game Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSIO
 # Testing configuration
 if(ENABLE_TESTING)
     # Individual component tests
-    add_executable(aiplayer_test tests/unit_tests/AIPlayer_test.cpp)
-    target_link_libraries(aiplayer_test game_core gtest gtest_main)
-    add_test(NAME AIPlayerTest COMMAND aiplayer_test)
+    add_executable(AIPlayer_test_test tests/unit_tests/AIPlayer_test.cpp)
+    target_link_libraries(AIPlayer_test_test game_core gtest gtest_main)
+    add_test(NAME AIPlayerTest COMMAND AIPlayer_test_test)
     
     add_executable(gameboard_test tests/unit_tests/GameBoard_test.cpp)
     target_link_libraries(gameboard_test game_core gtest gtest_main)
@@ -66,7 +66,7 @@ if(ENABLE_TESTING)
     target_link_libraries(gamehistory_test game_core gtest gtest_main)
     add_test(NAME GameHistoryTest COMMAND gamehistory_test)
     
-    add_executable(gamestack_test tests/unit_tests/GameStack_test.cpp)
+    add_executable(gamestack_test tests/unit_tests/GameStateStack_test.cpp)
     target_link_libraries(gamestack_test game_core gtest gtest_main)
     add_test(NAME GameStackTest COMMAND gamestack_test)
     
