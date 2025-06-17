@@ -40,6 +40,7 @@ set(SOURCES
     core/src/GameStateStack.cpp
     core/src/UserManager.cpp
     GUI/src/TicTacToeGUI.cpp
+    GUI/include/TicTacToeGUI.h 
     GUI/src/main.cpp
 )
 
