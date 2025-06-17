@@ -9,13 +9,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(BUILD_GUI "Build GUI components" OFF)
-if(BUILD_GUI)
-    find_package(Qt6 COMPONENTS Core Widgets QUIET)
-    if(NOT Qt6_FOUND)
-        find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-    endif()
-endif()
+
+find_package(Qt6 COMPONENTS Core Widgets QUIET)
+if(NOT Qt6_FOUND)
+  find_package(Qt5 COMPONENTS Corze Widgets REQUIRED)
+  endif()
 
 
 # Enable testing
