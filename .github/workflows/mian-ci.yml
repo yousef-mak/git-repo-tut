@@ -78,12 +78,12 @@ jobs:
       run: |
         cd ${{github.workspace}}/build
         gcovr --root .. --xml --output coverage.xml \
-          --filter "../core/src/aiplayer.cpp" \
-          --filter "../core/src/gameboard.cpp" \
-          --filter "../core/src/gamehistory.cpp" \
-          --filter "../core/src/gamestack.cpp" \
-          --filter "../core/src/_main.cpp" \
-          --filter "../core/src/_usermanager.cpp"
+          --filter "../core/src/AIPlayer.cpp" \
+          --filter "../core/src/GameBoard.cpp" \
+          --filter "../core/src/GameHistory.cpp" \
+          --filter "../core/src/GameStateStack.cpp" \
+          --filter "../core/src/main.cpp" \
+          --filter "../core/src/UserManagerr.cpp"
         
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
