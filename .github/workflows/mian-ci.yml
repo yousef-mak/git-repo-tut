@@ -1,0 +1,79 @@
+name: Advanced Tic Tac Toe CI/CD
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libgtest-dev \
+          qt5-default \
+          qtbase5-dev \
+          qttools5-dev \
+          libsqlite3-dev \
+          ccache \
+          clang-tidy \
+          clang-format
+        
+    - name: Setup ccache
+      uses: actions/cache@v3
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-ccache-
+        
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DENABLE_TESTING=ON \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      
+    - name: Build project
+      run: |
+        cmake --build ${{github.workspace}}/build \
+          --config ${{env.BUILD_TYPE}} \
+          --parallel $(nproc)
+      
+    - name: Run unit tests
+      working-directory: ${{github.workspace}}/build
+      run: |
+        ctest -C ${{env.BUILD_TYPE}} \
+          --output-on-failure \
+          --verbose
+      
+    - name: Generate test coverage report
+      if: success()
+      run: |
+        cd ${{github.workspace}}/build
+        gcov -r . || true
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: build-artifacts-${{ github.sha }}
+        path: |
+          build/
+          !build/CMakeFiles/
+        retention-days: 7
