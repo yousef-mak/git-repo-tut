@@ -38,7 +38,7 @@ This is an advanced Tic Tac Toe game developed in C++ that incorporates user aut
 ### Technologies Used
 - **Programming Language**: C++ with Object-Oriented Programming principles 
 - **GUI Framework**: Qt or similar C++ GUI libraries suitable for the platform 
-- **Database**: SQLite or lightweight database system for managing user data and game histories 
+- **Database**:  .dat file for database system for managing user data and game histories 
 - **Testing Framework**: Google Test for comprehensive unit and integration testing 
 - **Version Control**: Git with GitHub as remote repository for effective version control 
 
@@ -58,7 +58,6 @@ This is an advanced Tic Tac Toe game developed in C++ that incorporates user aut
 ### Prerequisites
 - C++ compiler (GCC 9.0+ or equivalent)
 - Qt framework (version 5.15 or later) or similar GUI libraries 
-- SQLite3 development libraries for database functionality 
 - Google Test framework for testing capabilities 
 - CMake (version 3.16 or later)
 
