@@ -79,12 +79,13 @@ make
 Run tests
 make test
 
-text
+
 
 ## Project Structure
 
 The project follows a modular architecture with clear separation of concerns based on the provided file structure:
-<details>
+
+<div align="center">
 
 advanced-tic-tac-toe/
 ├── core/ # Core game logic and algorithms
@@ -110,8 +111,8 @@ advanced-tic-tac-toe/
 ├── IntegrationTests.cpp # System integration tests
 ├── main.cpp # Test runner and framework setup
 └── UserManager_test.cpp # User management and authentication tests
-</details>
-text
+</div>
+
 
 ### Core Components
 
